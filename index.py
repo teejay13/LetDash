@@ -1,4 +1,4 @@
-from dash import Dash, html, dcc, Output, Input
+from dash2 import Dash, html, dcc, Output, Input
 import dash_bootstrap_components as dbc
 import pandas as pd
 import plotly.express as px
@@ -27,7 +27,7 @@ def update_graph(user_input):
         fig = px.bar(data_frame=df,x="Category",y="Quantity",title="Total Sales")
         
     elif user_input == 'Scatter Plot':
-        fig = px.scatter(data_frame=df, x="Quantity", y="Sales")
+        fig = px.scatter(data_frame=df, x="Profit", y="Sales")
         
     return fig
 
