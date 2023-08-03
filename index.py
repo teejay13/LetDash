@@ -11,21 +11,16 @@ df.columns = df.columns.str.replace(" ", "_").str.lower()
 
 df['order_date']=pd.to_datetime(df['order_date'])
 df['ship_date']=pd.to_datetime(df['ship_date'])
+df['quantity'] = df['quantity'].astype(float)
 
 print(df.sample(3))
 
-total_customers = df['customer_id'].agg(['count']).reset_index()
+# print(df.info())
 
-total_sales = df['sales'].sum()
+total_customers = df['customer_id'].agg(['count']).reset_index()
 
 def gen_total_bans(df,column):
         return df[column].sum()
-
-print(gen_total_bans(df,'sales'))
-
-# print(total_sales)
-
-print(numerize.numerize(total_sales, 3))
 
 Sales_by_Category=df.groupby('category')['sales'].sum().reset_index()
 
@@ -49,7 +44,7 @@ sales = dbc.Card(
                 # dcc.Graph(id="pie-graph",figure=sales_category_bar),
                 dbc.CardBody(
                 [
-                    html.H1(numerize.numerize(gen_total_bans(df,'sales'), 1), className="card-title"),
+                    html.H1(f"${numerize.numerize(gen_total_bans(df,'sales'), 1)} ", className="card-title"),
                     html.H6("Total Sales", className="card-title"),
                 ])
             ]
@@ -65,8 +60,40 @@ discount = dbc.Card(
                 # dcc.Graph(id="pie-graph",figure=sales_category_bar),
                 dbc.CardBody(
                 [
-                    html.H1(numerize.numerize(gen_total_bans(df,'discount'),1), className="card-title"),
+                    html.H1(f"${numerize.numerize(gen_total_bans(df,'discount'),1)}", className="card-title"),
                     html.H6("Total Discount", className="card-title"),
+                ])
+            ]
+        ),
+    ],
+    body=True,
+)
+
+profit = dbc.Card(
+    [
+        html.Div(
+            [
+                # dcc.Graph(id="pie-graph",figure=sales_category_bar),
+                dbc.CardBody(
+                [
+                    html.H1(f"${numerize.numerize(gen_total_bans(df,'profit'),1)}", className="card-title"),
+                    html.H6("Total Profit", className="card-title"),
+                ])
+            ]
+        ),
+    ],
+    body=True,
+)
+
+quantity = dbc.Card(
+    [
+        html.Div(
+            [
+                # dcc.Graph(id="pie-graph",figure=sales_category_bar),
+                dbc.CardBody(
+                [
+                    html.H1(numerize.numerize(gen_total_bans(df,'quantity'),1), className="card-title"),
+                    html.H6("Total Quantity", className="card-title"),
                 ])
             ]
         ),
@@ -101,8 +128,8 @@ def render_page_content(pathname):
                 dbc.Row([
                     dbc.Col(sales, md=3),
                     dbc.Col(discount, md=3),
-                    dbc.Col(discount, md=3),
-                    dbc.Col(sales, md=3),
+                    dbc.Col(profit, md=3),
+                    dbc.Col(quantity, md=3),
                 ]),
                 dbc.Row([
                     #dbc.Col(ok, md=6),
