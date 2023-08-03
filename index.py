@@ -29,9 +29,13 @@ sales_by_date=sales_df.groupby([pd.Grouper(key = 'order_date', freq = 'M')])['sa
 
 sales_by_loc = sales_df.groupby('state')['sales'].sum().reset_index()
 
+sales_by_segment = sales_df.groupby('segment')['sales'].sum().reset_index()
+sales_by_segment['sales'] = sales_by_segment['sales'].round(1)
+
 df_states = pd.read_csv('states.csv')
 
-print(df_states.info())
+
+print(sales_by_segment)
 
 
 df_merge_state = pd.merge(
@@ -48,18 +52,23 @@ sales_choro = px.choropleth(
     locations='abbreviation',
     scope="usa",
     color='sales',
+    color_continuous_scale='blues',
     hover_data=['state', 'sales'],                        
     labels={'sales':'total sales'})
 
 Sales_by_Category=df.groupby('category')['sales'].sum().reset_index()
 
 
+#fig = px.bar(data_canada, x='year', y='pop')
 # sales_category_pie =px.pie(Sales_by_Category, values='sales', 
 #              names='category', 
 #              hole=0.5, 
 #              color_discrete_sequence=px.colors.qualitative.Pastel)
 
-sales_category_bar = px.bar(df, x="sales", y="category", orientation='h')
+sales_segment_bar = px.bar(sales_by_segment, x="segment", y="sales", text_auto = True,title="Sales by Segment")
+
+sales_segment_bar.update_traces(textfont_size = 12, textangle = 0, textposition = "inside")
+sales_segment_bar.update_yaxes(visible=False)
 
 #sales_category_pie.update_traces(textposition='inside', textinfo='percent+label')
 
@@ -163,6 +172,10 @@ def render_page_content(pathname):
                     #dbc.Col(ok, md=6),
                     dbc.Col(dcc.Graph(id="cluster-graph",figure=sales_line), md=6),
                     dbc.Col(dcc.Graph(id="choro-graph",figure=sales_choro), md=6),
+                ]),
+                dbc.Row([
+                    dbc.Col(dcc.Graph(id="cluster-graph",figure=sales_line), md=8),
+                    dbc.Col(dcc.Graph(id="segment-graph",figure=sales_segment_bar), md=4),
                 ])
             ],
             align="center",
