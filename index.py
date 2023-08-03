@@ -2,6 +2,7 @@ from dash2 import Dash, html, dcc, Output, Input
 import dash_bootstrap_components as dbc
 from numerize import numerize
 import pandas as pd
+from pyzipcode import ZipCodeDatabase
 
 import plotly.express as px
 
@@ -15,16 +16,43 @@ df['quantity'] = df['quantity'].astype(float)
 
 print(df.sample(3))
 
-# print(df.info())
-
 total_customers = df['customer_id'].agg(['count']).reset_index()
 
 def gen_total_bans(df,column):
         return df[column].sum()
 
+sales_df = df.copy(deep=True)
+
+sales_df = sales_df.sort_values(by = 'order_date')
+
+sales_by_date=sales_df.groupby([pd.Grouper(key = 'order_date', freq = 'M')])['sales'].sum().reset_index()
+
+sales_by_loc = sales_df.groupby('state')['sales'].sum().reset_index()
+
+df_states = pd.read_csv('states.csv')
+
+print(df_states.info())
+
+
+df_merge_state = pd.merge(
+     sales_by_loc,
+     df_states[['state','abbreviation']],
+     on='state'
+)
+
+sales_line = px.area(sales_by_date, x="order_date", y="sales",title='Sales over Time')
+
+sales_choro = px.choropleth(
+    data_frame=df_merge_state,
+    locationmode='USA-states',
+    locations='abbreviation',
+    scope="usa",
+    color='sales',
+    hover_data=['state', 'sales'],                        
+    labels={'sales':'total sales'})
+
 Sales_by_Category=df.groupby('category')['sales'].sum().reset_index()
 
-print(Sales_by_Category)
 
 # sales_category_pie =px.pie(Sales_by_Category, values='sales', 
 #              names='category', 
@@ -133,7 +161,8 @@ def render_page_content(pathname):
                 ]),
                 dbc.Row([
                     #dbc.Col(ok, md=6),
-                    dbc.Col(dcc.Graph(id="cluster-graph"), md=6),
+                    dbc.Col(dcc.Graph(id="cluster-graph",figure=sales_line), md=6),
+                    dbc.Col(dcc.Graph(id="choro-graph",figure=sales_choro), md=6),
                 ])
             ],
             align="center",
